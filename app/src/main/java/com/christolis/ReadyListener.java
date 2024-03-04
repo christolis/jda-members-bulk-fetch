@@ -25,9 +25,7 @@ public class ReadyListener implements EventListener {
     public void onEvent(@NotNull GenericEvent event) {
         if (event instanceof ReadyEvent) {
             logger.info("JDA is now ready! Executing tasks...");
-            App.getInstance().getTasks().forEach(task ->
-                CompletableFuture.runAsync(task::execute)
-            );
+            App.getInstance().getTasks().forEach(task -> CompletableFuture.runAsync(task::execute));
         }
     }
 }
