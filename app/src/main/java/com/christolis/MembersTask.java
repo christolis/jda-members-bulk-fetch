@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -19,6 +21,7 @@ public class MembersTask implements Task {
 
     private static final Logger logger = LoggerFactory.getLogger(MembersTask.class);
     private static final String FILE_NAME = "members.txt";
+    private static final int SAVE_MEMBER_TIMES = 3;
     private final JDA jda;
 
     /**
@@ -35,16 +38,20 @@ public class MembersTask implements Task {
      */
     @Override
     public void execute() {
-        fetchAndSaveMembers();
+        logger.info("Fetching members for {} times...", SAVE_MEMBER_TIMES);
+        fetchAndSaveMembers(SAVE_MEMBER_TIMES);
     }
 
     /**
      * Fetches and saves members from the first guild found in the JDA instance.
+     *
+     * @param times the amount of times to perform this operation
      */
-    public void fetchAndSaveMembers() {
-        logger.info("Fetching members...");
+    public void fetchAndSaveMembers(int times) {
         CompletableFuture.runAsync(() -> getFirstGuild(jda).ifPresentOrElse(
-                guild -> guild.loadMembers().onSuccess(this::saveMembers),
+                guild -> guild.loadMembers()
+                    .onSuccess(members -> IntStream.range(0, times)
+                        .forEach(n -> this.saveMembers(members))),
                 () -> logger.error("No guild found")));
     }
 
